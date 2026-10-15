@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KI-Belegerfassung</title>
+<style>
+:root {
+  --bg: #f5f4f0; --panel: #ffffff; --ink: #1d2321; --muted: #66706c; --line: #e2e0d9;
+  --accent: #1f6f5c; --accent-soft: #e3f0ec;
+  --ok: #2f7d4f; --ok-bg: #e2f2e7; --warn: #8a5a00; --warn-bg: #fdf1d6; --err: #a3322a; --err-bg: #f9e1de;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+h1 { font-size: 26px; margin: 0; letter-spacing: -.01em; }
+h1 span { color: var(--accent); }
+.sub { color: var(--muted); margin: 4px 0 0; }
+.demo { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--warn); background: var(--warn-bg); padding: 4px 10px; border-radius: 99px; }
+.drop { display: block; margin-top: 24px; border: 2px dashed #c9c6bb; border-radius: 12px; background: var(--panel); padding: 28px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop strong { display: block; font-size: 16px; }
+.drop small { color: var(--muted); }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.kpi small { color: var(--muted); display: block; font-size: 12.5px; }
+.kpi b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.bar { display: flex; justify-content: space-between; align-items: center; margin: 28px 0 10px; gap: 12px; flex-wrap: wrap; }
+.bar h2 { font-size: 17px; margin: 0; }
+.btn { font: inherit; font-size: 14px; border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 8px; padding: 7px 14px; cursor: pointer; text-decoration: none; }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn:focus-visible, .drop:focus-visible { outline: 3px solid #9cc9bb; outline-offset: 2px; }
+.table { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: #faf9f6; }
+td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.main { cursor: pointer; }
+tr.main:hover td { background: #faf9f6; }
+tr.detail td { background: #fbfbf9; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; }
+.pill.OK { color: var(--ok); background: var(--ok-bg); }
+.pill.Prüfen { color: var(--warn); background: var(--warn-bg); }
+.pill.Fehler { color: var(--err); background: var(--err-bg); }
+.mono { font-family: var(--mono); font-size: 13px; }
+.muted { color: var(--muted); }
+.hints { margin: 0 0 8px; padding-left: 18px; color: var(--warn); }
+.err { color: var(--err); }
+.pos { width: auto; min-width: 480px; font-size: 13px; }
+.pos td, .pos th { padding: 5px 10px; background: transparent; }
+.empty { padding: 36px; text-align: center; color: var(--muted); }
+.busy { color: var(--accent); font-weight: 600; }
+footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
+@media (max-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>KI-<span>Belegerfassung</span></h1>
+      <p class="sub">Eingangsrechnungen hochladen, von Claude auslesen lassen, automatisch prüfen und als Excel exportieren.</p>
+    </div>
+    <span class="demo" id="demo" hidden>Demo mit Beispielbelegen</span>
+  </header>
+
+  <label class="drop" id="drop" tabindex="0">
+    <input type="file" id="files" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" hidden>
+    <strong>Rechnungen hier ablegen oder klicken</strong>
+    <small>PDF, JPG oder PNG · mehrere Dateien gleichzeitig · max. 20 MB pro Datei</small>
+  </label>
+
+  <section class="kpis">
+    <div class="kpi"><small>Belege</small><b id="k-anzahl">0</b></div>
+    <div class="kpi"><small>In Ordnung</small><b id="k-ok">0</b></div>
+    <div class="kpi"><small>Zu prüfen</small><b id="k-pruefen">0</b></div>
+    <div class="kpi"><small>Fehler</small><b id="k-fehler">0</b></div>
+    <div class="kpi"><small>Summe brutto</small><b id="k-summe">0,00 €</b></div>
+  </section>
+
+  <div class="bar">
+    <h2>Ergebnisse <span class="busy" id="busy" hidden>· wird ausgelesen …</span></h2>
+    <div>
+      <a class="btn" href="/export/csv">CSV</a>
+      <a class="btn primary" href="/export/xlsx">Excel herunterladen</a>
+    </div>
+  </div>
+
+  <div class="table">
+    <table>
+      <thead><tr><th>Status</th><th>Lieferant</th><th>Rechnungsnr.</th><th>Datum</th><th>Fällig</th><th style="text-align:right">Netto</th><th style="text-align:right">MwSt.</th><th style="text-align:right">Brutto</th><th>Datei</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="9" class="empty">Noch keine Belege. Laden Sie oben eine Rechnung hoch.</td></tr></tbody>
+    </table>
+  </div>
+
+  <footer>Zeile anklicken für Positionen, IBAN und Prüfhinweise. Die Prüfung rechnet Netto, MwSt. und Positionen nach und kontrolliert IBAN-Prüfsumme und Daten.</footer>
+</div>
+
+<script>
+const DEMO = {{DEMO}};
+const eur = n => n == null ? "–" : Number(n).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+const dat = d => d ? new Date(d + "T00:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) : "–";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function render(list) {
+  const set = (id, v) => document.getElementById(id).textContent = v;
+  set("k-anzahl", list.length);
+  set("k-ok", list.filter(e => e.status === "OK").length);
+  set("k-pruefen", list.filter(e => e.status === "Prüfen").length);
+  set("k-fehler", list.filter(e => e.status === "Fehler").length);
+  set("k-summe", eur(list.reduce((s, e) => s + (e.beleg ? Number(e.beleg.brutto) : 0), 0)));
+  const rows = document.getElementById("rows");
+  if (!list.length) return;
+  rows.innerHTML = list.map((e, i) => {
+    const b = e.beleg;
+    const main = b
+      ? `<tr class="main" data-i="${i}"><td><span class="pill ${e.status}">${e.status}</span></td><td>${esc(b.lieferant)}</td><td class="mono">${esc(b.rechnungsnummer)}</td><td>${dat(b.rechnungsdatum)}</td><td>${dat(b.faelligkeitsdatum)}</td><td class="n">${eur(b.netto)}</td><td class="n">${eur(b.mwst_betrag)}</td><td class="n"><b>${eur(b.brutto)}</b></td><td class="muted">${esc(e.datei)}</td></tr>`
+      : `<tr><td><span class="pill Fehler">Fehler</span></td><td colspan="7" class="err">${esc(e.fehler)}</td><td class="muted">${esc(e.datei)}</td></tr>`;
+    if (!b) return main;
+    const hints = e.hinweise.length ? `<ul class="hints">${e.hinweise.map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : "";
+    const pos = b.positionen.length ? `<table class="pos"><tr><th>Position</th><th style="text-align:right">Menge</th><th style="text-align:right">Einzelpreis</th><th style="text-align:right">Gesamt</th></tr>${b.positionen.map(p => `<tr><td>${esc(p.beschreibung)}</td><td class="n">${p.menge ?? "–"}</td><td class="n">${eur(p.einzelpreis)}</td><td class="n">${eur(p.gesamt)}</td></tr>`).join("")}</table>` : "";
+    const meta = `<p class="muted">USt-IdNr.: <span class="mono">${esc(b.lieferant_ust_id) || "–"}</span> · IBAN: <span class="mono">${esc(b.iban) || "–"}</span> · MwSt.-Satz: ${b.mwst_satz ?? "gemischt"} %</p>`;
+    return main + `<tr class="detail" id="d${i}" ${e.status === "Prüfen" ? "" : "hidden"}><td></td><td colspan="8">${hints}${meta}${pos}</td></tr>`;
+  }).join("");
+}
+
+document.getElementById("rows").addEventListener("click", ev => {
+  const tr = ev.target.closest("tr.main");
+  if (tr) { const d = document.getElementById("d" + tr.dataset.i); d.hidden = !d.hidden; }
+});
+
+async function upload(fileList) {
+  if (DEMO) { alert("Im Demo-Modus werden keine Dateien verarbeitet."); return; }
+  const fd = new FormData();
+  [...fileList].forEach(f => fd.append("dateien", f));
+  document.getElementById("busy").hidden = false;
+  try {
+    const r = await fetch("/api/belege", { method: "POST", body: fd });
+    render(await r.json());
+  } finally { document.getElementById("busy").hidden = true; }
+}
+
+const drop = document.getElementById("drop");
+document.getElementById("files").addEventListener("change", e => upload(e.target.files));
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") document.getElementById("files").click(); });
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => upload(e.dataTransfer.files));
+
+document.getElementById("demo").hidden = !DEMO;
+fetch("/api/belege").then(r => r.json()).then(render);
+</script>
+</body>
+</html>

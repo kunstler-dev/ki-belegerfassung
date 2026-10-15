@@ -1,0 +1,106 @@
+[
+  {
+    "datei": "rechnung-druckerei-scan.png",
+    "beleg": {
+      "lieferant": "Druckerei Musterstadt KG",
+      "lieferant_ust_id": "DE111222333",
+      "rechnungsnummer": "DM-55120",
+      "rechnungsdatum": "2026-10-09",
+      "faelligkeitsdatum": "2026-10-23",
+      "waehrung": "EUR",
+      "netto": "550.00",
+      "mwst_satz": null,
+      "mwst_betrag": "56.50",
+      "brutto": "606.50",
+      "iban": "DE89370400440532013000",
+      "positionen": [
+        {
+          "beschreibung": "Broschüre Produktkatalog, 24 Seiten",
+          "menge": "500",
+          "einzelpreis": "0.80",
+          "gesamt": "400.00"
+        },
+        {
+          "beschreibung": "Gestaltung und Satz",
+          "menge": "1",
+          "einzelpreis": "150.00",
+          "gesamt": "150.00"
+        }
+      ]
+    },
+    "hinweise": [],
+    "fehler": null
+  },
+  {
+    "datei": "rechnung-it-service.pdf",
+    "beleg": {
+      "lieferant": "IT-Service Max Mustermann",
+      "lieferant_ust_id": "DE987654321",
+      "rechnungsnummer": "2026-087",
+      "rechnungsdatum": "2026-10-06",
+      "faelligkeitsdatum": "2026-10-20",
+      "waehrung": "EUR",
+      "netto": "540.00",
+      "mwst_satz": "19",
+      "mwst_betrag": "102.60",
+      "brutto": "652.60",
+      "iban": "DE02120300000000202051",
+      "positionen": [
+        {
+          "beschreibung": "Wartung Server und Arbeitsplätze (Stunden)",
+          "menge": "6",
+          "einzelpreis": "85.00",
+          "gesamt": "510.00"
+        },
+        {
+          "beschreibung": "Anfahrt pauschal",
+          "menge": "1",
+          "einzelpreis": "30.00",
+          "gesamt": "30.00"
+        }
+      ]
+    },
+    "hinweise": [
+      "Netto + MwSt. (642,60) ergibt nicht den Bruttobetrag (652,60)."
+    ],
+    "fehler": null
+  },
+  {
+    "datei": "rechnung-papierhaus.pdf",
+    "beleg": {
+      "lieferant": "Papierhaus Muster GmbH",
+      "lieferant_ust_id": "DE123456789",
+      "rechnungsnummer": "PM-2026-10418",
+      "rechnungsdatum": "2026-10-02",
+      "faelligkeitsdatum": "2026-10-16",
+      "waehrung": "EUR",
+      "netto": "220.00",
+      "mwst_satz": "19",
+      "mwst_betrag": "41.80",
+      "brutto": "261.80",
+      "iban": "DE89370400440532013000",
+      "positionen": [
+        {
+          "beschreibung": "Kopierpapier A4, 80 g, 500 Blatt",
+          "menge": "10",
+          "einzelpreis": "4.90",
+          "gesamt": "49.00"
+        },
+        {
+          "beschreibung": "Toner schwarz, Typ 26X",
+          "menge": "2",
+          "einzelpreis": "64.50",
+          "gesamt": "129.00"
+        },
+        {
+          "beschreibung": "Ordner A4, breit",
+          "menge": "20",
+          "einzelpreis": "2.10",
+          "gesamt": "42.00"
+        }
+      ]
+    },
+    "hinweise": [],
+    "fehler": null
+  }
+]
